@@ -7,7 +7,7 @@ class Graph:
         self.graph = [] 
 
     
-    def addEdge(self, u, v, w):
+    def add_edge(self, u, v, w):
         self.graph.append([u, v, w])
 
 
@@ -17,7 +17,7 @@ class Graph:
         for i in range(self.V):
             for j in range(i + 1, self.V):
                 if matrix[i][j] != 0:
-                    self.addEdge(i, j, matrix[i][j])
+                    self.add_edge(i, j, matrix[i][j])
 
     def to_matrix(self):
         matrix = [[0 for _ in range(self.V)] for _ in range(self.V)]
@@ -37,7 +37,7 @@ class Graph:
             for v, w in adj_list[u]:
                 edge_signature = tuple(sorted((u, v)))
                 if edge_signature not in added_edges:
-                    self.addEdge(u, v, w)
+                    self.add_edge(u, v, w)
                     added_edges.add(edge_signature)
 
     def to_adj_list(self):
@@ -47,7 +47,7 @@ class Graph:
             adj_list[v].append([u, w])
         return adj_list
     
-    def generate_random_graph(self, num_vertices, density, f):
+    def generate_random_graph(self, num_vertices, density):
   
         self.V = num_vertices
         self.graph = []  
@@ -55,10 +55,7 @@ class Graph:
             for j in range(i + 1, self.V):
                 if random.random() < density:
                     weight = random.randint(1, 100)
-                    self.addEdge(i, j, weight)
-        
-        f.write(f"Граф на {self.V} вершин. Щільність {density}\n")
-
+                    self.add_edge(i, j, weight)
 
 
     def find(self, parent, i):
@@ -89,8 +86,9 @@ class Graph:
             parent.append(node)
             rank.append(0)
             cheapest = [-1] * self.V
-
+        edges = []
         while numTrees > 1:
+            
             for i in range(len(self.graph)):
                 u, v, w = self.graph[i]
                 set1 = self.find(parent, u)
@@ -101,7 +99,6 @@ class Graph:
                         cheapest[set1] = [u, v, w]
                     if cheapest[set2] == -1 or cheapest[set2][2] > w:
                         cheapest[set2] = [u, v, w]
-
             for node in range(self.V):
                 if cheapest[node] != -1:
                     u, v, w = cheapest[node]
@@ -110,66 +107,59 @@ class Graph:
 
                     if set1 != set2:
                         MSTweight += w
+                        print(w)
                         self.union(parent, rank, set1, set2)
+                        edges.append((u, v, w))
                         numTrees = numTrees - 1
             
             cheapest = [-1] * self.V
+        #print(f"Ребра MST: {edges}\n Вага MST: {MSTweight}\n")
 
-        f.write(f"Вага MST: {MSTweight}\n")
 
 
 
 if __name__ == "__main__":
 
     # експериментні дані
-    random_nodes = [24, 25, 28, 33, 50, 58, 67, 72, 74, 84, 88, 116, 120, 139, 154, 158, 186, 191, 199, 200]
+    random_nodes = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]
     random_density = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
     # матриці суміжності
     f = open("log.txt", "a", encoding="utf-8")
-    f.write("ДОСЛІД 1. МАТРИЦІ СУМІЖНОСТІ")
+    f.write("ДОСЛІД 1. МАТРИЦІ СУМІЖНОСТІ\n")
     g = Graph(0)
     dict = {}
     for node in random_nodes:
-        f.write(f"\nРОЗМІР {node}")
         avgtime_list = []
         for density in random_density:
-            f.write(f"\nЩІЛЬНІСТЬ {density}")
             time_list = []
-            for i in range(30):
-                f.write(f"\n\nЕксперимент {i}\n")
+            for _ in range(30):
                 g.generate_random_graph(node, density, f)
                 g.from_matrix(g.to_matrix())
                 start = time.time()
                 g.boruvkaMST(f)
                 end = time.time()
                 time_list.append(end-start)
-                f.write(f"Час виконання: {end-start}")
-            avgtime = round(sum(time_list)/len(time_list), 5)
-            f.write(f"\nСередній час для розміру {node} та щільності {density}: {avgtime}\n")
-            avgtime_list.append(avgtime)
-        print(f"{node}: {avgtime_list}")
+            avg_time = round(sum(time_list)/len(time_list), 5)
+            avgtime_list.append(avg_time)
+        f.write(f"\n{node}: {avgtime_list}")
 
     # списки суміжності
     f = open("log.txt", "a", encoding="utf-8")
-    f.write("ДОСЛІД 2. СПИСКИ СУМІЖНОСТІ")
+    f.write("ДОСЛІД 2. СПИСКИ СУМІЖНОСТІ\n")
     g = Graph(0)
     dict = {}
     for node in random_nodes:
-        f.write(f"\nРОЗМІР {node}")
         avgtime_list = []
         for density in random_density:
-            f.write(f"\nЩІЛЬНІСТЬ {density}")
             time_list = []
             for i in range(30):
-                f.write(f"\n\nЕксперимент {i}\n")
                 g.generate_random_graph(node, density, f)
                 g.from_adj_list(g.to_adj_list())
                 start = time.time()
                 g.boruvkaMST(f)
                 end = time.time()
                 time_list.append(end-start)
-                f.write(f"Час виконання: {end-start}")
-            avgtime = round(sum(time_list)/len(time_list), 5)
-            f.write(f"\nСередній час для розміру {node} та щільності {density}: {avgtime}\n")
-            avgtime_list.append(avgtime)
+            avg_time = round(sum(time_list)/len(time_list), 5)
+            avgtime_list.append(avg_time)
+        f.write(f"\n{node}: {avgtime_list}")
